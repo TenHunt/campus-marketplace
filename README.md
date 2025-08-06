@@ -1,5 +1,5 @@
-# full-stack-web-app
-Repository for my Full-Stack Web App for CMPG323-2025 with group members added.
+# Campus Marketplace - CMPG323 Group Project
+Repository for the Campus Marketplace web app for CMPG323-2025 with group members added.
 
 **Group members**  
 Will be added once groups are announced.
