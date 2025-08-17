@@ -1,0 +1,74 @@
+Entities
+
+User
+Item
+Category
+Cart
+Order
+
+
+
+User
+
+user_id
+first_name
+last_name
+user_email
+user_phone
+user_address?
+user_status?
+
+
+
+Item
+
+item_id
+item_title
+item_description
+item_price
+category
+item_photo_id?
+item_status
+collection_address??
+
+
+
+Category
+
+textbooks
+furniture
+electronics
+small_appliances
+study_material
+
+
+
+Order
+
+order_id
+user_id  --> seller_id? --> buyer_id?
+item_id
+order_status
+order_total
+
+
+
+Cart
+
+user_id --> buyer_id
+item_id
+current_total
+
+
+
+Relationships
+
+1 User - M items
+1 User - M orders
+1 User - 1 Cart
+1 Order - M items
+1 Item - 1 Category (Mandatory)
+
+User can be either a buyer or a seller or both
+
+
