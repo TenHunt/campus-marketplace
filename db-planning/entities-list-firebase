@@ -1,0 +1,225 @@
+FIREBASE COLLECTIONS (Completely Normalized)
+
+Collections:
+- users
+- userProfiles  
+- categories
+- items
+- carts
+- cartItems
+- orders
+- orderItems
+- payments
+- messages
+- itemPhotos
+
+========================================
+
+USERS Collection
+Document ID: Auto-generated Firebase ID
+{
+  "userId": "string",
+  "firstName": "string",
+  "lastName": "string", 
+  "email": "string", // unique, indexed
+  "phoneNumber": "string",
+  "createdAt": "timestamp",
+  "updatedAt": "timestamp",
+  "isActive": "boolean",
+  "emailVerified": "boolean"
+}
+// Note: Firebase Auth handles password authentication
+
+USER_PROFILES Collection  
+Document ID: Same as user document ID
+{
+  "userId": "string", // reference to users collection
+  "profilePictureUrl": "string",
+  "bio": "string",
+  "preferredContactMethod": "string", // email/phone/message
+  "campusLocation": "string",
+  "studentNumber": "string",
+  "yearOfStudy": "number",
+  "createdAt": "timestamp",
+  "updatedAt": "timestamp"
+}
+
+CATEGORIES Collection
+Document ID: Auto-generated Firebase ID
+{
+  "categoryId": "string",
+  "categoryName": "string", // textbooks/books/electronics/furniture/study_materials/other
+  "categoryDescription": "string",
+  "isActive": "boolean",
+  "createdAt": "timestamp"
+}
+
+ITEMS Collection
+Document ID: Auto-generated Firebase ID  
+{
+  "itemId": "string",
+  "sellerId": "string", // reference to users collection
+  "categoryId": "string", // reference to categories collection
+  "title": "string",
+  "description": "string",
+  "price": "number",
+  "condition": "string", // new/like_new/good/fair/poor
+  "itemStatus": "string", // available/sold/pending/removed
+  "collectionAddress": "string",
+  "collectionInstructions": "string",
+  "postedAt": "timestamp",
+  "updatedAt": "timestamp", 
+  "viewsCount": "number"
+}
+
+ITEM_PHOTOS Collection
+Document ID: Auto-generated Firebase ID
+{
+  "photoId": "string",
+  "itemId": "string", // reference to items collection
+  "photoUrl": "string",
+  "photoOrder": "number", // for display ordering
+  "uploadedAt": "timestamp"
+}
+
+CARTS Collection
+Document ID: Same as user document ID (one cart per user)
+{
+  "cartId": "string",
+  "buyerId": "string", // reference to users collection
+  "createdAt": "timestamp",
+  "updatedAt": "timestamp"
+}
+
+CART_ITEMS Collection
+Document ID: Auto-generated Firebase ID
+{
+  "cartItemId": "string", 
+  "cartId": "string", // reference to carts collection
+  "itemId": "string", // reference to items collection
+  "quantity": "number",
+  "addedAt": "timestamp"
+}
+
+ORDERS Collection
+Document ID: Auto-generated Firebase ID
+{
+  "orderId": "string",
+  "buyerId": "string", // reference to users collection
+  "sellerId": "string", // reference to users collection  
+  "orderStatus": "string", // pending/confirmed/completed/cancelled
+  "orderTotal": "number",
+  "deliveryCost": "number", 
+  "collectionAddress": "string",
+  "collectionInstructions": "string",
+  "orderDate": "timestamp",
+  "completionDate": "timestamp",
+  "notes": "string"
+}
+
+ORDER_ITEMS Collection
+Document ID: Auto-generated Firebase ID
+{
+  "orderItemId": "string",
+  "orderId": "string", // reference to orders collection
+  "itemId": "string", // reference to items collection
+  "quantity": "number",
+  "priceAtPurchase": "number", // price when order was placed
+  "itemTotal": "number" // quantity * priceAtPurchase
+}
+
+PAYMENTS Collection  
+Document ID: Auto-generated Firebase ID
+{
+  "paymentId": "string",
+  "orderId": "string", // reference to orders collection
+  "paymentMethod": "string", // credit_card/debit_card/instant_eft/snapcan
+  "paymentStatus": "string", // pending/completed/failed/refunded
+  "paymentAmount": "number",
+  "transactionReference": "string",
+  "paymentDate": "timestamp",
+  "gatewayResponse": "object" // store gateway response data
+}
+
+MESSAGES Collection
+Document ID: Auto-generated Firebase ID
+{
+  "messageId": "string",
+  "senderId": "string", // reference to users collection
+  "receiverId": "string", // reference to users collection
+  "itemId": "string", // optional - reference to items collection
+  "subject": "string",
+  "messageContent": "string", 
+  "sentAt": "timestamp",
+  "readAt": "timestamp",
+  "messageType": "string" // inquiry/negotiation/arrangement/general
+}
+
+========================================
+
+FIREBASE INDEXES (for optimal queries)
+
+Composite Indexes:
+- items: categoryId + itemStatus + postedAt (desc)
+- items: sellerId + itemStatus + postedAt (desc)  
+- cartItems: cartId + addedAt (desc)
+- orderItems: orderId + itemId
+- messages: receiverId + readAt + sentAt (desc)
+- messages: senderId + sentAt (desc)
+- messages: itemId + sentAt (desc)
+
+Single Field Indexes:
+- users: email
+- items: sellerId
+- items: categoryId
+- items: itemStatus
+- cartItems: cartId
+- orderItems: orderId
+- payments: orderId
+- messages: senderId, receiverId, itemId
+
+========================================
+
+FIREBASE SECURITY RULES CONSIDERATIONS
+
+- Users can only read/write their own user document
+- Users can only read/write their own cart and cart items
+- Users can read all items, but only write items they own
+- Users can only read/write orders where they are buyer or seller
+- Users can only read/write messages they sent or received
+- Categories are read-only for regular users
+- Item photos are linked to items user owns
+
+========================================
+
+DENORMALIZATION OPPORTUNITIES (for performance)
+
+Consider denormalizing these fields for read performance:
+- Store seller name + profile picture in items collection
+- Store item title + price in cart_items collection  
+- Store item details in order_items collection
+- Store category name in items collection
+- Store buyer/seller names in orders collection
+
+Trade-off: Faster reads but more complex writes and potential data inconsistency
+
+========================================
+
+FIREBASE COLLECTION RELATIONSHIPS
+
+users (1) ←→ (1) userProfiles  
+users (1) ←→ (M) items (as seller)
+users (1) ←→ (M) orders (as buyer/seller) 
+users (1) ←→ (1) carts
+users (1) ←→ (M) messages (as sender/receiver)
+
+categories (1) ←→ (M) items
+
+items (1) ←→ (M) itemPhotos
+items (1) ←→ (M) cartItems
+items (1) ←→ (M) orderItems  
+items (1) ←→ (M) messages [optional]
+
+carts (1) ←→ (M) cartItems
+orders (1) ←→ (M) orderItems
+orders (1) ←→ (M) payments
