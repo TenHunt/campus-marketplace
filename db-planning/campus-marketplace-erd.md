@@ -141,35 +141,3 @@ erDiagram
     ORDER ||--o{ ORDER_ITEM : "includes"
     ORDER ||--o{ PAYMENT : "paid_by"
 ```
-
-## How to Use This Mermaid Diagram
-
-### 1. **In VS Code:**
-- Install the "Mermaid Preview" extension
-- Open this file and use Ctrl/Cmd+Shift+P → "Mermaid: Preview"
-
-### 2. **In GitHub:**
-- This will render automatically in README.md or any .md file
-- Perfect for documentation
-
-### 3. **Export Options:**
-- Use online Mermaid editor: https://mermaid.live/
-- Export as PNG, SVG, or PDF
-
-### 4. **Embed in Documentation:**
-```markdown
-## Database ERD
-```mermaid
-[paste the diagram code here]
-```
-```
-
-## Key Features of This ERD:
-✅ **All 11 entities** with complete attributes  
-✅ **Primary keys (PK)** and **Foreign keys (FK)** marked  
-✅ **Relationship cardinality** using Mermaid notation  
-✅ **Clean visual layout** for easy understanding  
-✅ **Version controllable** as plain text  
-✅ **GitHub compatible** for team collaboration  
-
-The diagram shows all the relationships from your logical specification in a clear, visual format that's perfect for presentations and documentation!
