@@ -32,7 +32,7 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CAMPUS_MARKETPLACE_C7D92 }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CAMPUS_MARKET_PLACE_3F978 }}'
           projectId: campus-marketplace-c7d92
           channelId: development # This will be your persistent 'development' channel
           expires: never # Set this channel to never expire if you want it to be permanent
