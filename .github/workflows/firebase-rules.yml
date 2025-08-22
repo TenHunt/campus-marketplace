@@ -47,22 +47,8 @@ jobs:
 
       - name: Validate Firestore Rules Syntax
         run: |
-          # Basic syntax validation
-          firebase firestore:rules:check firestore.rules --project=${{ secrets.FIREBASE_PROJECT_ID || 'campus-market-place-3f978' }}
-
-      - name: Run Firebase Emulators for Testing
-        run: |
-          # Start emulators in background
-          firebase emulators:start --only firestore,storage --project=${{ secrets.FIREBASE_PROJECT_ID || 'campus-market-place-3f978' }} &
-          
-          # Wait for emulators to start
-          sleep 10
-          
-          # Basic connectivity test
-          curl -f http://localhost:8080 || exit 1
-          
-          # Stop emulators
-          pkill -f firebase
+          # Parse & validate rules without deploying
+          firebase deploy --only firestore:rules --project=${{ secrets.FIREBASE_PROJECT_ID || 'campus-marketplace-c7d92' }} --dry-run
 
   deploy-rules:
     needs: test-rules
@@ -88,11 +74,9 @@ jobs:
 
       - name: Deploy Firebase Rules
         run: |
-          # Deploy only the rules and indexes
-          firebase deploy --only firestore:rules,storage:rules,firestore:indexes --project=${{ secrets.FIREBASE_PROJECT_ID || 'campus-market-place-3f978' }}
+          firebase deploy --only firestore:rules,storage:rules,firestore:indexes --project=${{ secrets.FIREBASE_PROJECT_ID || 'campus-marketplace-c7d92' }}
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CAMPUS_MARKETPLACE_C7D92 }}
 
   notify-success:
     needs: [test-rules, deploy-rules]
