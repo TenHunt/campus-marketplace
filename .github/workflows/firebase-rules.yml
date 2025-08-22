@@ -1,0 +1,107 @@
+name: Test and Deploy Firebase Rules
+
+on:
+  push:
+    branches: [ development, main ]
+    paths: 
+      - 'firestore.rules'
+      - 'storage.rules'
+      - 'firestore.indexes.json'
+      - '.github/workflows/firebase-rules.yml'
+  pull_request:
+    branches: [ development, main ]
+    paths: 
+      - 'firestore.rules'
+      - 'storage.rules'
+      - 'firestore.indexes.json'
+
+jobs:
+  test-rules:
+    runs-on: ubuntu-latest
+    name: Test Firebase Security Rules
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Verify Firebase Configuration
+        run: |
+          echo "Checking firebase.json configuration..."
+          cat firebase.json
+          echo "Checking firestore.rules..."
+          head -10 firestore.rules
+          echo "Checking storage.rules..."
+          head -10 storage.rules
+
+      - name: Validate Firestore Rules Syntax
+        run: |
+          # Basic syntax validation
+          firebase firestore:rules:check firestore.rules --project=${{ secrets.FIREBASE_PROJECT_ID || 'campus-market-place-3f978' }}
+
+      - name: Run Firebase Emulators for Testing
+        run: |
+          # Start emulators in background
+          firebase emulators:start --only firestore,storage --project=${{ secrets.FIREBASE_PROJECT_ID || 'campus-market-place-3f978' }} &
+          
+          # Wait for emulators to start
+          sleep 10
+          
+          # Basic connectivity test
+          curl -f http://localhost:8080 || exit 1
+          
+          # Stop emulators
+          pkill -f firebase
+
+  deploy-rules:
+    needs: test-rules
+    runs-on: ubuntu-latest
+    name: Deploy Firebase Rules
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/development' || github.ref == 'refs/heads/main')
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy Firebase Rules
+        run: |
+          # Deploy only the rules and indexes
+          firebase deploy --only firestore:rules,storage:rules,firestore:indexes --project=${{ secrets.FIREBASE_PROJECT_ID || 'campus-market-place-3f978' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CAMPUS_MARKETPLACE_C7D92 }}
+
+  notify-success:
+    needs: [test-rules, deploy-rules]
+    runs-on: ubuntu-latest
+    if: always() && (needs.test-rules.result == 'success')
+    
+    steps:
+      - name: Success Notification
+        run: |
+          echo "Firebase rules testing completed successfully!"
+          echo "Rules validation: ${{ needs.test-rules.result }}"
+          echo "Rules deployment: ${{ needs.deploy-rules.result || 'skipped (not on main/development branch)' }}"
