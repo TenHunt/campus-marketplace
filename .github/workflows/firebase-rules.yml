@@ -2,13 +2,13 @@ name: Test and Deploy Firebase Rules
 
 on:
   push:
-    branches: [ development, main ]
+    branches: [ development, main, development-database-merge ]
     paths: 
       - 'firestore.rules'
       - 'firestore.indexes.json'
       - '.github/workflows/firebase-rules.yml'
   pull_request:
-    branches: [ development, main ]
+    branches: [ development, main, development-database-merge ]
     paths: 
       - 'firestore.rules'
       - 'firestore.indexes.json'
