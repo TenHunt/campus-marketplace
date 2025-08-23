@@ -54,7 +54,7 @@ jobs:
     needs: test-rules
     runs-on: ubuntu-latest
     name: Deploy Firebase Rules
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/development' || github.ref == 'refs/heads/main')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/development' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development-database-merge')
     
     steps:
       - name: Checkout Code
