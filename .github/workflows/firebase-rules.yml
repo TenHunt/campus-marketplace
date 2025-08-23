@@ -1,0 +1,91 @@
+name: Test and Deploy Firebase Rules
+
+on:
+  push:
+    branches: [ development, main, development-database-merge ]
+    paths: 
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - '.github/workflows/firebase-rules.yml'
+  pull_request:
+    branches: [ development, main, development-database-merge ]
+    paths: 
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+
+jobs:
+  test-rules:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component: [firestore:rules, firestore:indexes]
+    name: Validate ${{ matrix.component }}
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Verify Firebase Configuration
+        run: |
+          echo "Checking firebase.json configuration..."
+          cat firebase.json
+          echo "Checking first lines of rules/indexes..."
+          if [ -f firestore.rules ]; then head -10 firestore.rules; fi
+          if [ -f firestore.indexes.json ]; then head -10 firestore.indexes.json; fi
+
+      - name: Validate ${{ matrix.component }}
+        run: firebase deploy --only ${{ matrix.component }} --dry-run
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+  deploy-rules:
+    needs: test-rules
+    runs-on: ubuntu-latest
+    name: Deploy Firebase Rules
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/development' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development-database-merge')
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy Firebase Rules
+        run: firebase deploy --only firestore:rules,firestore:indexes
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+  notify-success:
+    needs: [test-rules, deploy-rules]
+    runs-on: ubuntu-latest
+    if: always() && (needs.test-rules.result == 'success')
+    
+    steps:
+      - name: Success Notification
+        run: |
+          echo "Firebase components tested successfully in parallel!"
+          echo "Firestore rules: ${{ needs.test-rules.result }}"
+          echo "Firestore indexes: ${{ needs.test-rules.result }}"
+          echo "Deployment: ${{ needs.deploy-rules.result || 'skipped (not on main/development branch)' }}"
